@@ -9,41 +9,54 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { captureRef } from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../constants/theme';
 import Infographic from './Infographic';
 
 export default function InfographicModal({ visible, onClose, players, sessionDate }) {
   const infographicRef = useRef(null);
-  const [capturing, setCapturing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  const handleShare = async () => {
+  const handleSaveToGallery = async () => {
     if (!infographicRef.current) return;
-    setCapturing(true);
+    setSaving(true);
+    setSaved(false);
+
     try {
+      // Solicitar permiso de galería
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permiso denegado',
+          'Necesitamos acceso a tu galeria de fotos para guardar el resumen. Habilitalo en Ajustes > Poker Admin.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Capturar la infografía como imagen PNG
       const uri = await captureRef(infographicRef, {
         format: 'png',
         quality: 1,
         result: 'tmpfile',
       });
 
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
-        Alert.alert('No disponible', 'La función de compartir no está disponible en este dispositivo.');
-        return;
-      }
+      // Guardar en la galería
+      await MediaLibrary.saveToLibraryAsync(uri);
 
-      await Sharing.shareAsync(uri, {
-        mimeType: 'image/png',
-        dialogTitle: 'Compartir resumen de partida',
-        UTI: 'public.png',
-      });
-    } catch (err) {
-      Alert.alert('Error', 'No se pudo generar la imagen. Intenta de nuevo.');
+      setSaved(true);
+      Alert.alert(
+        'Imagen guardada',
+        'El resumen de la partida se guardo en tu galeria de fotos. Puedes compartirla desde ahi por WhatsApp.',
+        [{ text: 'Perfecto', onPress: onClose }]
+      );
+    } catch {
+      Alert.alert('Error', 'No se pudo guardar la imagen. Intenta de nuevo.');
     } finally {
-      setCapturing(false);
+      setSaving(false);
     }
   };
 
@@ -51,12 +64,12 @@ export default function InfographicModal({ visible, onClose, players, sessionDat
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={s.overlay}>
 
-        {/* Barra superior del modal */}
+        {/* Barra superior */}
         <View style={s.topBar}>
           <TouchableOpacity onPress={onClose} style={s.closeBtn}>
             <MaterialCommunityIcons name="close" size={22} color={COLORS.textSecondary} />
           </TouchableOpacity>
-          <Text style={s.topTitle}>Vista Previa</Text>
+          <Text style={s.topTitle}>Resumen de Partida</Text>
           <View style={{ width: 38 }} />
         </View>
 
@@ -66,9 +79,10 @@ export default function InfographicModal({ visible, onClose, players, sessionDat
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          <Text style={s.hint}>Toca "Compartir" para enviar esta imagen por WhatsApp</Text>
+          <Text style={s.hint}>
+            Presiona "Guardar en Fotos" y luego comparte desde tu galería por WhatsApp
+          </Text>
 
-          {/* La infografía — el ref va aquí para capturarla */}
           <View style={s.infographicWrapper}>
             <Infographic
               ref={infographicRef}
@@ -80,24 +94,28 @@ export default function InfographicModal({ visible, onClose, players, sessionDat
           <View style={{ height: SPACING.xxl }} />
         </ScrollView>
 
-        {/* Botones de acción fijos abajo */}
+        {/* Botones fijos abajo */}
         <View style={s.actions}>
           <TouchableOpacity style={s.cancelBtn} onPress={onClose}>
-            <Text style={s.cancelText}>Cancelar</Text>
+            <Text style={s.cancelText}>Cerrar</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[s.shareBtn, capturing && s.shareBtnLoading]}
-            onPress={handleShare}
-            disabled={capturing}
+            style={[s.saveBtn, saving && s.saveBtnLoading, saved && s.saveBtnDone]}
+            onPress={handleSaveToGallery}
+            disabled={saving}
           >
-            {capturing ? (
+            {saving ? (
               <ActivityIndicator size="small" color={COLORS.textInverse} />
             ) : (
-              <FontAwesome5 name="whatsapp" size={18} color={COLORS.textInverse} />
+              <MaterialCommunityIcons
+                name={saved ? 'check' : 'image-plus'}
+                size={20}
+                color={COLORS.textInverse}
+              />
             )}
-            <Text style={s.shareText}>
-              {capturing ? 'Generando…' : 'Compartir imagen'}
+            <Text style={s.saveText}>
+              {saving ? 'Guardando…' : saved ? 'Guardada' : 'Guardar en Fotos'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -143,7 +161,7 @@ const s = StyleSheet.create({
     textAlign: 'center',
     marginBottom: SPACING.base,
     paddingHorizontal: SPACING.xl,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   infographicWrapper: {
     shadowColor: COLORS.emerald,
@@ -175,7 +193,7 @@ const s = StyleSheet.create({
     color: COLORS.textSecondary,
     fontWeight: '700',
   },
-  shareBtn: {
+  saveBtn: {
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
@@ -183,17 +201,21 @@ const s = StyleSheet.create({
     gap: SPACING.sm,
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.whatsapp,
-    shadowColor: COLORS.whatsapp,
+    backgroundColor: COLORS.emerald,
+    shadowColor: COLORS.emerald,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 8,
   },
-  shareBtnLoading: {
-    backgroundColor: COLORS.whatsappDark,
+  saveBtnLoading: {
+    backgroundColor: COLORS.emeraldDark,
+    shadowOpacity: 0,
   },
-  shareText: {
+  saveBtnDone: {
+    backgroundColor: COLORS.emeraldDark,
+  },
+  saveText: {
     fontSize: FONT_SIZE.base,
     fontWeight: '800',
     color: COLORS.textInverse,

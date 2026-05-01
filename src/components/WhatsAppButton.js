@@ -6,7 +6,7 @@ import { useSession, computeSessionStats } from '../context/SessionContext';
 import InfographicModal from './InfographicModal';
 
 export default function FooterActions() {
-  const { state, dispatch } = useSession();
+  const { state, resetSession } = useSession();
   const { players, sessionDate } = state;
   const { isBalanced } = computeSessionStats(players);
   const [modalVisible, setModalVisible] = useState(false);
@@ -30,15 +30,11 @@ export default function FooterActions() {
 
   const handleReset = () => {
     Alert.alert(
-      '🗑️  Resetear Mesa',
-      '¿Seguro que quieres borrar todos los datos y empezar una sesión nueva? Esta acción no se puede deshacer.',
+      'Resetear Mesa',
+      'Se borraran todos los jugadores y datos. Esta accion no se puede deshacer.',
       [
         { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Resetear',
-          style: 'destructive',
-          onPress: () => dispatch({ type: 'RESET_SESSION' }),
-        },
+        { text: 'Resetear', style: 'destructive', onPress: resetSession },
       ]
     );
   };

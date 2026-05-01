@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateId } from '../utils/id';
 
@@ -218,8 +218,14 @@ export function SessionProvider({ children }) {
       .catch(() => {});
   }, []);
 
+  // Borra AsyncStorage Y resetea el estado en un solo paso
+  const resetSession = useCallback(async () => {
+    await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+    dispatch({ type: 'RESET_SESSION' });
+  }, []);
+
   return (
-    <SessionContext.Provider value={{ state, dispatch }}>
+    <SessionContext.Provider value={{ state, dispatch, resetSession }}>
       {children}
     </SessionContext.Provider>
   );
