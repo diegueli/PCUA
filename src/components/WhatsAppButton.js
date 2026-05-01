@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Keyboard } from 'react-native';
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../constants/theme';
 import { useSession, computeSessionStats } from '../context/SessionContext';
@@ -29,14 +29,17 @@ export default function FooterActions() {
   };
 
   const handleReset = () => {
-    Alert.alert(
-      'Resetear Mesa',
-      'Se borraran todos los jugadores y datos. Esta accion no se puede deshacer.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Resetear', style: 'destructive', onPress: resetSession },
-      ]
-    );
+    Keyboard.dismiss();
+    setTimeout(() => {
+      Alert.alert(
+        'Resetear Mesa',
+        'Se borraran todos los jugadores y datos. Esta accion no se puede deshacer.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Resetear', style: 'destructive', onPress: resetSession },
+        ]
+      );
+    }, 150);
   };
 
   return (
