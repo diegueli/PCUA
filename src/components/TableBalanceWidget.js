@@ -8,7 +8,8 @@ import { useSession, computeSessionStats } from '../context/SessionContext';
 export default function TableBalanceWidget() {
   const { state } = useSession();
   const { players } = state;
-  const { totalInvested, totalFinalChips, discrepancy, isBalanced } = computeSessionStats(players);
+
+  const { totalInvested, totalFinalChips, discrepancy, isBalanced } = computeSessionStats(state);
 
   const hasData = players.length > 0;
 

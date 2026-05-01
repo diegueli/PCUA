@@ -7,8 +7,8 @@ import { useSession, computeSessionStats } from '../context/SessionContext';
 
 export default function DataIntegrityHeader() {
   const { state, dispatch } = useSession();
-  const { sessionState, players, sessionDate } = state;
-  const { confirmedPot, unconfirmedDebt } = computeSessionStats(players);
+  const { sessionState, players, sessionDate, globalBuyIn } = state;
+  const { confirmedPot, unconfirmedDebt } = computeSessionStats(state);
 
   const stateColor = SESSION_STATE_COLORS[sessionState];
   const stateLabel = SESSION_STATE_LABELS[sessionState];

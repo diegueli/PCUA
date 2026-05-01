@@ -7,8 +7,8 @@ import InfographicModal from './InfographicModal';
 
 export default function FooterActions() {
   const { state, resetSession } = useSession();
-  const { players, sessionDate } = state;
-  const { isBalanced } = computeSessionStats(players);
+  const { players, sessionDate, globalBuyIn, utilidad } = state;
+  const { isBalanced } = computeSessionStats(state);
   const [modalVisible, setModalVisible] = useState(false);
 
   const hasPlayers = players.length > 0;
@@ -81,6 +81,8 @@ export default function FooterActions() {
         onClose={() => setModalVisible(false)}
         players={players}
         sessionDate={sessionDate}
+        globalBuyIn={globalBuyIn}
+        utilidad={utilidad}
       />
     </>
   );

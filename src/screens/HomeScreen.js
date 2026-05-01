@@ -13,6 +13,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../constants/theme';
 import { useSession } from '../context/SessionContext';
 import DataIntegrityHeader from '../components/DataIntegrityHeader';
+import SessionConfig from '../components/SessionConfig';
 import PlayerCard from '../components/PlayerCard';
 import TableBalanceWidget from '../components/TableBalanceWidget';
 import FooterActions from '../components/WhatsAppButton';
@@ -39,6 +40,9 @@ export default function HomeScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* Configuración global de la mesa */}
+        <SessionConfig />
+
         {players.length === 0 ? (
           <EmptyState onAddPress={() => setModalVisible(true)} />
         ) : (

@@ -16,7 +16,7 @@ import { Platform } from 'react-native';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../constants/theme';
 import Infographic from './Infographic';
 
-export default function InfographicModal({ visible, onClose, players, sessionDate }) {
+export default function InfographicModal({ visible, onClose, players, sessionDate, globalBuyIn, utilidad }) {
   const infographicRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -100,6 +100,8 @@ export default function InfographicModal({ visible, onClose, players, sessionDat
               ref={infographicRef}
               players={players}
               sessionDate={sessionDate}
+              globalBuyIn={globalBuyIn}
+              utilidad={utilidad}
             />
           </View>
 

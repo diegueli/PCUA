@@ -13,7 +13,6 @@ function makePlayer(name = '', photo = null) {
     id: generateId(),
     name,
     photo,
-    buyIn: 0,
     buyInConfirmed: false,
     buyInConfirmedAt: null,
     rebuys: [],
@@ -33,6 +32,8 @@ function makeRebuy(amount = 0) {
 const initialState = {
   sessionState: 'OPEN',
   sessionDate: new Date().toISOString(),
+  globalBuyIn: 0,
+  utilidad: 0,
   players: [],
 };
 
@@ -50,6 +51,12 @@ function sessionReducer(state, action) {
 
     case 'SET_SESSION_STATE':
       return { ...state, sessionState: action.payload };
+
+    case 'SET_GLOBAL_BUYIN':
+      return { ...state, globalBuyIn: action.payload };
+
+    case 'SET_UTILIDAD':
+      return { ...state, utilidad: action.payload };
 
     // --- Jugadores ---
     case 'ADD_PLAYER': {
@@ -156,40 +163,46 @@ function sessionReducer(state, action) {
 }
 
 // ---------------------------------------------------------------------------
-// Cálculos derivados
+// Cálculos derivados — recibe el state completo
 // ---------------------------------------------------------------------------
 
-export function computeSessionStats(players) {
+export function computeSessionStats(state) {
+  const { players, globalBuyIn = 0, utilidad = 0 } = state;
+
   let confirmedPot = 0;
   let unconfirmedDebt = 0;
-  let totalInvested = 0;
   let totalFinalChips = 0;
 
   players.forEach(p => {
-    const rebuysTotal = p.rebuys.reduce((s, r) => s + r.amount, 0);
-    const invested = p.buyIn + rebuysTotal;
-    totalInvested += invested;
-    totalFinalChips += p.finalChips;
-
-    if (p.buyInConfirmed) {
-      confirmedPot += p.buyIn;
-    } else {
-      unconfirmedDebt += p.buyIn;
+    if (globalBuyIn > 0) {
+      if (p.buyInConfirmed) confirmedPot += globalBuyIn;
+      else unconfirmedDebt += globalBuyIn;
     }
-
     p.rebuys.forEach(r => {
-      if (r.confirmed) {
-        confirmedPot += r.amount;
-      } else {
-        unconfirmedDebt += r.amount;
-      }
+      if (r.confirmed) confirmedPot += r.amount;
+      else if (r.amount > 0) unconfirmedDebt += r.amount;
     });
+    totalFinalChips += p.finalChips;
   });
 
+  const totalRebuys = players.reduce(
+    (sum, p) => sum + p.rebuys.reduce((s, r) => s + r.amount, 0),
+    0
+  );
+  const totalInvested = globalBuyIn * players.length + totalRebuys;
   const discrepancy = totalInvested - totalFinalChips;
   const isBalanced = players.length > 0 && discrepancy === 0;
+  const depositoCaja = Math.max(0, totalInvested - utilidad);
 
-  return { confirmedPot, unconfirmedDebt, totalInvested, totalFinalChips, discrepancy, isBalanced };
+  return {
+    confirmedPot,
+    unconfirmedDebt,
+    totalInvested,
+    totalFinalChips,
+    discrepancy,
+    isBalanced,
+    depositoCaja,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -201,24 +214,18 @@ const SessionContext = createContext(null);
 export function SessionProvider({ children }) {
   const [state, dispatch] = useReducer(sessionReducer, initialState);
 
-  // Persistir en AsyncStorage cuando cambia el estado
   useEffect(() => {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
   }, [state]);
 
-  // Cargar desde AsyncStorage al iniciar
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then(raw => {
-        if (raw) {
-          const saved = JSON.parse(raw);
-          dispatch({ type: 'LOAD_STATE', payload: saved });
-        }
+        if (raw) dispatch({ type: 'LOAD_STATE', payload: JSON.parse(raw) });
       })
       .catch(() => {});
   }, []);
 
-  // Borra AsyncStorage Y resetea el estado en un solo paso
   const resetSession = useCallback(async () => {
     await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     dispatch({ type: 'RESET_SESSION' });
