@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   SafeAreaView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -16,37 +15,22 @@ import { useSession } from '../context/SessionContext';
 import DataIntegrityHeader from '../components/DataIntegrityHeader';
 import PlayerCard from '../components/PlayerCard';
 import TableBalanceWidget from '../components/TableBalanceWidget';
-import WhatsAppButton from '../components/WhatsAppButton';
+import FooterActions from '../components/WhatsAppButton';
 import AddPlayerModal from '../components/AddPlayerModal';
 
 export default function HomeScreen() {
-  const { state, dispatch } = useSession();
+  const { state } = useSession();
   const { players, sessionState } = state;
   const [modalVisible, setModalVisible] = useState(false);
 
   const isLocked = sessionState !== 'OPEN';
-
-  const handleReset = () => {
-    Alert.alert(
-      'Nueva sesión',
-      '¿Iniciar una nueva sesión? Se perderán todos los datos actuales.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Nueva sesión',
-          style: 'destructive',
-          onPress: () => dispatch({ type: 'RESET_SESSION' }),
-        },
-      ]
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
 
       {/* Header fijo */}
-      <DataIntegrityHeader onResetPress={handleReset} />
+      <DataIntegrityHeader />
 
       {/* Lista de jugadores */}
       <ScrollView
@@ -55,7 +39,6 @@ export default function HomeScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Jugadores */}
         {players.length === 0 ? (
           <EmptyState onAddPress={() => setModalVisible(true)} />
         ) : (
@@ -64,7 +47,7 @@ export default function HomeScreen() {
           ))
         )}
 
-        {/* Botón añadir jugador (cuando hay jugadores y mesa abierta) */}
+        {/* Botón añadir jugador */}
         {players.length > 0 && !isLocked && (
           <TouchableOpacity style={styles.addMoreBtn} onPress={() => setModalVisible(true)}>
             <MaterialCommunityIcons name="account-plus-outline" size={18} color={COLORS.emerald} />
@@ -78,18 +61,15 @@ export default function HomeScreen() {
         <View style={styles.scrollPad} />
       </ScrollView>
 
-      {/* Botón WhatsApp fijo al fondo */}
-      <WhatsAppButton />
+      {/* Footer: reset + WhatsApp */}
+      <FooterActions />
 
-      {/* Modal para agregar jugador */}
+      {/* Modal agregar jugador */}
       <AddPlayerModal visible={modalVisible} onClose={() => setModalVisible(false)} />
     </SafeAreaView>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Estado vacío
-// ---------------------------------------------------------------------------
 function EmptyState({ onAddPress }) {
   return (
     <View style={styles.emptyState}>
@@ -139,8 +119,6 @@ const styles = StyleSheet.create({
   scrollPad: {
     height: SPACING.lg,
   },
-
-  // Estado vacío
   emptyState: {
     alignItems: 'center',
     paddingTop: SPACING.xxl * 2,

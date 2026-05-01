@@ -94,6 +94,7 @@ function AmountRow({ label, value, confirmed, confirmedAt, onChangeAmount, onTog
           placeholderTextColor={COLORS.textMuted}
           editable={!disabled}
           maxLength={9}
+          allowFontScaling={false}
         />
         <Text style={styles.currencySuffix}>CLP</Text>
       </View>
@@ -179,6 +180,7 @@ export default function PlayerCard({ player }) {
             placeholder="Nombre del jugador"
             placeholderTextColor={COLORS.textMuted}
             editable={!isLocked}
+            allowFontScaling={false}
           />
           {totalInvested > 0 && (
             <Text style={styles.investedLabel}>
@@ -255,6 +257,7 @@ export default function PlayerCard({ player }) {
             placeholder="0"
             placeholderTextColor={COLORS.textMuted}
             maxLength={9}
+            allowFontScaling={false}
           />
           <Text style={styles.currencySuffix}>CLP</Text>
         </View>
@@ -431,7 +434,7 @@ const styles = StyleSheet.create({
   },
   amountInput: {
     flex: 1,
-    fontSize: FONT_SIZE.md,
+    fontSize: FONT_SIZE.base, // mínimo 16px para evitar auto-zoom en iOS
     color: COLORS.textPrimary,
     fontWeight: '600',
     paddingVertical: SPACING.xs,

@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SESSION_STATE_LABELS, SESSION_STATE_COLORS } from '../constants/theme';
 import { formatCLP } from '../utils/currency';
 import { useSession, computeSessionStats } from '../context/SessionContext';
 
-export default function DataIntegrityHeader({ onResetPress }) {
+export default function DataIntegrityHeader() {
   const { state, dispatch } = useSession();
   const { sessionState, players, sessionDate } = state;
   const { confirmedPot, unconfirmedDebt } = computeSessionStats(players);
@@ -27,15 +27,9 @@ export default function DataIntegrityHeader({ onResetPress }) {
           <Text style={styles.title}>POKER ADMIN</Text>
         </View>
 
-        <View style={styles.rightGroup}>
-          <View style={[styles.stateBadge, { borderColor: stateColor }]}>
-            <View style={[styles.stateDot, { backgroundColor: stateColor }]} />
-            <Text style={[styles.stateLabel, { color: stateColor }]}>{stateLabel}</Text>
-          </View>
-
-          <TouchableOpacity onPress={onResetPress} style={styles.resetBtn}>
-            <Ionicons name="refresh" size={18} color={COLORS.textSecondary} />
-          </TouchableOpacity>
+        <View style={[styles.stateBadge, { borderColor: stateColor }]}>
+          <View style={[styles.stateDot, { backgroundColor: stateColor }]} />
+          <Text style={[styles.stateLabel, { color: stateColor }]}>{stateLabel}</Text>
         </View>
       </View>
 
