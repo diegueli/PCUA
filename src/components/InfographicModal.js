@@ -12,6 +12,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
+import { Platform } from 'react-native';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../constants/theme';
 import Infographic from './Infographic';
 
@@ -26,33 +27,44 @@ export default function InfographicModal({ visible, onClose, players, sessionDat
     setSaved(false);
 
     try {
-      // Solicitar permiso de galería
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permiso denegado',
-          'Necesitamos acceso a tu galeria de fotos para guardar el resumen. Habilitalo en Ajustes > Poker Admin.',
-          [{ text: 'OK' }]
-        );
-        return;
-      }
-
       // Capturar la infografía como imagen PNG
       const uri = await captureRef(infographicRef, {
         format: 'png',
         quality: 1,
-        result: 'tmpfile',
+        result: Platform.OS === 'web' ? 'base64' : 'tmpfile',
       });
 
-      // Guardar en la galería
-      await MediaLibrary.saveToLibraryAsync(uri);
-
-      setSaved(true);
-      Alert.alert(
-        'Imagen guardada',
-        'El resumen de la partida se guardo en tu galeria de fotos. Puedes compartirla desde ahi por WhatsApp.',
-        [{ text: 'Perfecto', onPress: onClose }]
-      );
+      if (Platform.OS === 'web') {
+        // En web: descarga directa desde el navegador
+        const link = document.createElement('a');
+        link.download = `poker-resumen-${new Date().toLocaleDateString('es-CL').replace(/\//g, '-')}.png`;
+        link.href = `data:image/png;base64,${uri}`;
+        link.click();
+        setSaved(true);
+        Alert.alert(
+          'Imagen descargada',
+          'El resumen se descargo como imagen PNG. Puedes compartirla por WhatsApp desde tu carpeta de descargas.',
+          [{ text: 'Perfecto', onPress: onClose }]
+        );
+      } else {
+        // En móvil: guardar en galería
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permiso denegado',
+            'Necesitamos acceso a tu galeria de fotos. Habilitalo en Ajustes > Poker Admin.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+        await MediaLibrary.saveToLibraryAsync(uri);
+        setSaved(true);
+        Alert.alert(
+          'Imagen guardada',
+          'El resumen se guardo en tu galeria de fotos. Puedes compartirla desde ahi por WhatsApp.',
+          [{ text: 'Perfecto', onPress: onClose }]
+        );
+      }
     } catch {
       Alert.alert('Error', 'No se pudo guardar la imagen. Intenta de nuevo.');
     } finally {
@@ -115,7 +127,11 @@ export default function InfographicModal({ visible, onClose, players, sessionDat
               />
             )}
             <Text style={s.saveText}>
-              {saving ? 'Guardando…' : saved ? 'Guardada' : 'Guardar en Fotos'}
+              {saving
+                ? 'Guardando…'
+                : saved
+                ? 'Listo'
+                : Platform.OS === 'web' ? 'Descargar imagen' : 'Guardar en Fotos'}
             </Text>
           </TouchableOpacity>
         </View>
