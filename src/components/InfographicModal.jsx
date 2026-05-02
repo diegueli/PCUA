@@ -3,7 +3,7 @@ import { X, ImagePlus, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import Infographic from './Infographic.jsx';
 
-export default function InfographicModal({ visible, onClose, players, sessionDate, globalBuyIn, utilidad }) {
+export default function InfographicModal({ visible, onClose, players, sessionDate, globalBuyIn }) {
   const infRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -48,7 +48,7 @@ export default function InfographicModal({ visible, onClose, players, sessionDat
           Presiona "Descargar imagen" y luego compártela por WhatsApp desde tu galería
         </p>
         <div style={{ boxShadow: '0 0 40px rgba(0,200,81,0.15)', borderRadius: 18 }}>
-          <Infographic ref={infRef} players={players} sessionDate={sessionDate} globalBuyIn={globalBuyIn} utilidad={utilidad} />
+          <Infographic ref={infRef} players={players} sessionDate={sessionDate} globalBuyIn={globalBuyIn} />
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Banknote, Building2, Lock } from 'lucide-react';
+import { Banknote, Lock } from 'lucide-react';
 import { useSession } from '../context/SessionContext.jsx';
 
 function AmountField({ label, Icon, iconColor, value, onCommit, disabled }) {
@@ -36,7 +36,7 @@ function AmountField({ label, Icon, iconColor, value, onCommit, disabled }) {
 
 export default function SessionConfig() {
   const { state, dispatch } = useSession();
-  const { globalBuyIn, utilidad, sessionState } = state;
+  const { globalBuyIn, sessionState } = state;
   const isLocked = sessionState !== 'OPEN';
 
   return (
@@ -51,11 +51,14 @@ export default function SessionConfig() {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <AmountField label="Buy-in (igual para todos)" Icon={Banknote} iconColor="#00C851" value={globalBuyIn} onCommit={v => dispatch({ type: 'SET_GLOBAL_BUYIN', payload: v })} disabled={isLocked} />
-        <div style={{ width: 1, height: 40, backgroundColor: 'var(--divider)' }} />
-        <AmountField label="Utilidad de la caja" Icon={Building2} iconColor="#FF9500" value={utilidad} onCommit={v => dispatch({ type: 'SET_UTILIDAD', payload: v })} disabled={isLocked} />
-      </div>
+      <AmountField
+        label="Buy-in (igual para todos)"
+        Icon={Banknote}
+        iconColor="#00C851"
+        value={globalBuyIn}
+        onCommit={v => dispatch({ type: 'SET_GLOBAL_BUYIN', payload: v })}
+        disabled={isLocked}
+      />
 
       {globalBuyIn > 0 && (
         <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center' }}>

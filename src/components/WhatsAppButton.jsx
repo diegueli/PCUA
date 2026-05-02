@@ -5,7 +5,7 @@ import InfographicModal from './InfographicModal.jsx';
 
 export default function FooterActions() {
   const { state, resetSession } = useSession();
-  const { players, sessionDate, globalBuyIn, utilidad } = state;
+  const { players, sessionDate, globalBuyIn } = state;
   const { isBalanced } = computeSessionStats(state);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -64,7 +64,6 @@ export default function FooterActions() {
         players={players}
         sessionDate={sessionDate}
         globalBuyIn={globalBuyIn}
-        utilidad={utilidad}
       />
     </>
   );
